@@ -103,9 +103,9 @@ def build_chart_values(repository: dict) -> helm.ChartOpts:
 
     if 'repository_url' in repository and has_image_tag:
         repository_url = repository['repository_url']
-        if 'image_tag_alias' in repository:
+        if 'image_tag_alias' in repository and repository['image_tag_alias']:
             image_tag = repository['image_tag_alias']
-        elif 'image_tag' in repository:
+        elif 'image_tag' in repository and repository['image_tag']:
             image_tag = repository['image_tag']
 
         if 'image' not in values['controller']:
@@ -118,10 +118,11 @@ def build_chart_values(repository: dict) -> helm.ChartOpts:
                 'tag': image_tag
             })
 
-            values['controller']['nginxplus'] = image_tag.endswith('plus')
-            if values['controller']['nginxplus']:
-                pulumi.log.info("Enabling NGINX Plus")
-
+            image_name = repository['image_name']
+            if 'plus' in image_name:
+                values['controller']['nginxplus'] = 'true'
+                if values['controller']['nginxplus']:
+                    pulumi.log.info("Enabling NGINX Plus")
     return values
 
 
@@ -169,7 +170,7 @@ kic_release_args = ReleaseArgs(
     # are available. Set this to true to skip waiting on resources being
     # available.
     skip_await=False,
-    # If we fail, clean up 
+    # If we fail, clean up
     cleanup_on_fail=True,
     # Provide a name for our release
     name="kic",
